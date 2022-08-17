@@ -7,5 +7,8 @@ Run LiveKit Server
 `livekit-server --config server/livekit.yaml`
 
 Run BackEnd for tokens and React
-`node index env=prod`
+`node index`
+
+Setup environment
+`export NODE_ENV=production`
 
