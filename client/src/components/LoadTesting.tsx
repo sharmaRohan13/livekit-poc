@@ -1,11 +1,6 @@
 import { useState } from 'react';
 import axios from 'axios';
-import {
-    Room,
-    createLocalVideoTrack,
-    LocalVideoTrack,
-    VideoPresets43,
-} from 'livekit-client';
+import { Room, createLocalVideoTrack, LocalVideoTrack, VideoPresets43 } from 'livekit-client';
 import { LiveKitRoom, StageProps } from '@livekit/react-components';
 import {
     Box,
@@ -20,44 +15,40 @@ import {
 } from '@mui/material';
 import { PhotoCamera, CallEnd, Loop } from '@mui/icons-material';
 
-import urls from '../urls';
+import config from '../config';
 
 interface CustomStageViewProps {
     stageProps: StageProps;
     tracks: Map<string, LocalVideoTrack>;
-    closeView: Function;
+    closeView: () => void;
 }
 
-const CustomStageView: React.FC<CustomStageViewProps> = ({
-    stageProps,
-    tracks,
-    closeView,
-}: any) => {
+const CustomStageView: React.FC<CustomStageViewProps> = ({ stageProps, tracks, closeView }) => {
     const sid = stageProps?.roomState?.room?.localParticipant?.sid;
-    const localTrack = tracks.get(sid);
+    const localTrack = tracks.get(sid!);
 
     if (!localTrack) {
         return (
             <IconButton
-                size="small"
+                size='small'
                 sx={{
                     border: '2px solid',
                     marginBottom: '10px',
                 }}
             >
-                <Loop fontSize="inherit" />
+                <Loop fontSize='inherit' />
             </IconButton>
         );
     }
 
     return (
         <IconButton
-            aria-label="disconnect"
-            size="small"
-            color="error"
+            aria-label='disconnect'
+            size='small'
+            color='error'
             onClick={() => {
                 stageProps?.roomState?.room?.disconnect();
-                tracks.delete(sid);
+                tracks.delete(sid!);
                 closeView();
             }}
             sx={{
@@ -65,7 +56,7 @@ const CustomStageView: React.FC<CustomStageViewProps> = ({
                 marginBottom: '10px',
             }}
         >
-            <CallEnd fontSize="inherit" />
+            <CallEnd fontSize='inherit' />
         </IconButton>
     );
 };
@@ -81,13 +72,10 @@ const RenderRoom: React.FC<RenderRoomProps> = ({ tracks, seatNo, roomNo }) => {
     const [token, setToken] = useState('');
 
     const handleActivate = async () => {
-        const { data } = await axios.post<string>(
-            `${urls.webServer}/participant/register`,
-            {
-                name: `part_${seatNo}`,
-                room: `room_${roomNo}`,
-            }
-        );
+        const { data } = await axios.post<string>(`${config.baseApiUrl}/participant/register`, {
+            name: `part_${seatNo}`,
+            room: `room_${roomNo}`,
+        });
 
         setToken(data);
         setConnected(true);
@@ -121,7 +109,7 @@ const RenderRoom: React.FC<RenderRoomProps> = ({ tracks, seatNo, roomNo }) => {
             {connected ? (
                 <>
                     <LiveKitRoom
-                        url={urls.webRtc}
+                        url={config.webRtcUrl}
                         token={token}
                         stageRenderer={(stageProps: StageProps) => (
                             <CustomStageView
@@ -140,16 +128,16 @@ const RenderRoom: React.FC<RenderRoomProps> = ({ tracks, seatNo, roomNo }) => {
                 </>
             ) : (
                 <IconButton
-                    aria-label="connect"
-                    size="small"
-                    color="primary"
+                    aria-label='connect'
+                    size='small'
+                    color='primary'
                     onClick={handleActivate}
                     sx={{
                         border: '2px solid',
                         marginBottom: '10px',
                     }}
                 >
-                    <PhotoCamera fontSize="inherit" />
+                    <PhotoCamera fontSize='inherit' />
                 </IconButton>
             )}
         </Box>
@@ -166,33 +154,29 @@ export const LoadTesting = () => {
                 marginTop: '100px',
             }}
         >
-            <Box m="auto">
-                <Typography variant="h4">Load Testing</Typography>
-                <FormControl
-                    size="small"
-                    required
-                    sx={{ m: 1, minWidth: 120, color: '#fff' }}
-                >
-                    <InputLabel id="select-room">Room</InputLabel>
+            <Box m='auto'>
+                <Typography variant='h4'>Load Testing</Typography>
+                <FormControl size='small' required sx={{ m: 1, minWidth: 120, color: '#fff' }}>
+                    <InputLabel id='select-room'>Room</InputLabel>
                     <Select
-                        labelId="select-room"
-                        id="select-room"
+                        labelId='select-room'
+                        id='select-room'
                         value={roomNo}
-                        label="Room"
+                        label='Room'
                         onChange={(e) => setRoomNo(e.target.value)}
                     >
-                        <MenuItem value="">
+                        <MenuItem value=''>
                             <em>None</em>
                         </MenuItem>
-                        <MenuItem value="1">One</MenuItem>
-                        <MenuItem value="2">Two</MenuItem>
-                        <MenuItem value="3">Three</MenuItem>
+                        <MenuItem value='1'>One</MenuItem>
+                        <MenuItem value='2'>Two</MenuItem>
+                        <MenuItem value='3'>Three</MenuItem>
                     </Select>
                 </FormControl>
             </Box>
 
             <Box sx={{ flexGrow: 1 }}>
-                <Grid m="20px" container spacing={2}>
+                <Grid m='20px' container spacing={2}>
                     {Array.from(Array(24)).map((_, idx) => (
                         <Grid item lg={2} md={3} xs={6} key={idx}>
                             <RenderRoom

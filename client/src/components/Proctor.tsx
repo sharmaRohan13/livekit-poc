@@ -21,7 +21,7 @@ import {
 } from '@mui/material';
 import { PhotoCamera, Circle, CallEnd, Loop } from '@mui/icons-material';
 
-import urls from '../urls';
+import config from '../config';
 
 enum ConnectionStatus {
     Idle = 0,
@@ -34,9 +34,7 @@ interface ParticipantTileProps {
     room: Room;
 }
 
-const ParticipantTile = (
-    props: ParticipantTileProps
-): React.ReactElement | null => {
+const ParticipantTile = (props: ParticipantTileProps): React.ReactElement | null => {
     const [currentBitrate, setCurrentBitrate] = useState<number>(0);
     const { participant } = props;
     const { cameraPublication, isLocal } = useParticipant(participant);
@@ -45,10 +43,7 @@ const ParticipantTile = (
         const interval = setInterval(() => {
             let total = 0;
             participant.tracks.forEach((pub) => {
-                if (
-                    pub.track instanceof LocalTrack ||
-                    pub.track instanceof RemoteTrack
-                ) {
+                if (pub.track instanceof LocalTrack || pub.track instanceof RemoteTrack) {
                     total += pub.track.currentBitrate;
                 }
             });
@@ -88,24 +83,24 @@ const ParticipantTile = (
                         top: ' 5px',
                         right: '5px',
                     }}
-                    fontSize="small"
+                    fontSize='small'
                 />
                 {renderLoading ? (
                     <IconButton
-                        size="small"
+                        size='small'
                         sx={{
                             border: '2px solid',
                             marginBottom: '10px',
                         }}
                     >
-                        <Loop fontSize="inherit" />
+                        <Loop fontSize='inherit' />
                     </IconButton>
                 ) : (
                     <VideoRenderer
                         track={cameraPublication.track!}
                         isLocal={false}
-                        width="100%"
-                        height="100%"
+                        width='100%'
+                        height='100%'
                     />
                 )}
 
@@ -119,27 +114,25 @@ const ParticipantTile = (
                     }}
                 >
                     <Box
-                        component="span"
+                        component='span'
                         sx={{
                             color: 'white',
                         }}
                     >
-                        <Typography variant="body2">
+                        <Typography variant='body2'>
                             &nbsp;
                             {Math.round(currentBitrate / 1024)} kbps
                         </Typography>
                     </Box>
                     <Box
-                        component="span"
+                        component='span'
                         sx={{
                             position: 'absolute',
                             color: 'white',
                             right: '5px',
                         }}
                     >
-                        <Typography variant="body2">
-                            {participant.metadata}
-                        </Typography>
+                        <Typography variant='body2'>{participant.metadata}</Typography>
                     </Box>
                 </Box>
             </Box>
@@ -150,29 +143,33 @@ const ParticipantTile = (
 interface StageViewProps {
     roomState: RoomState;
     disconnect: boolean;
-    setToken: Function;
+    setToken: (token: string) => void;
 }
 
-const CustomStageView = ({ roomState, disconnect, setToken }: StageViewProps): React.ReactElement => {
+const CustomStageView = ({
+    roomState,
+    disconnect,
+    setToken,
+}: StageViewProps): React.ReactElement => {
     const { room, participants, error } = roomState;
 
     useEffect(() => {
-        if(disconnect) {
-            room!.disconnect();
+        if (disconnect && room) {
+            room.disconnect();
             setToken('');
         }
-    }, [disconnect])
+    }, [disconnect]);
 
     return (
         <Box sx={{ flexGrow: 1 }}>
             {error ? (
-                <Typography color="error" variant="h6">
+                <Typography color='error' variant='h6'>
                     Error: {error.message}
                 </Typography>
             ) : (
-                <Grid m="20px" container spacing={2}>
+                <Grid m='20px' container spacing={2}>
                     {participants.map((ppt) => (
-                        <ParticipantTile participant={ppt} room={room!} />
+                        <ParticipantTile key={ppt.sid} participant={ppt} room={room!} />
                     ))}
                 </Grid>
             )}
@@ -183,18 +180,13 @@ const CustomStageView = ({ roomState, disconnect, setToken }: StageViewProps): R
 export const Proctor = () => {
     const [token, setToken] = useState<string>('');
     const [roomNo, setRoomNo] = useState('');
-    const [connectionStatus, setConnectionStatus] = useState(
-        ConnectionStatus.Idle
-    );
+    const [connectionStatus, setConnectionStatus] = useState(ConnectionStatus.Idle);
 
     const handleConnect = async () => {
-        const { data } = await axios.post<string>(
-            `${urls.webServer}/proctor/register`,
-            {
-                name: `proc_${roomNo}`,
-                room: `room_${roomNo}`,
-            }
-        );
+        const { data } = await axios.post<string>(`${config.baseApiUrl}/proctor/register`, {
+            name: `proc_${roomNo}`,
+            room: `room_${roomNo}`,
+        });
         setToken(data);
     };
 
@@ -204,9 +196,9 @@ export const Proctor = () => {
         case ConnectionStatus.Idle:
             controlIcon = (
                 <IconButton
-                    aria-label="connect"
-                    size="small"
-                    color="primary"
+                    aria-label='connect'
+                    size='small'
+                    color='primary'
                     onClick={() => {
                         setConnectionStatus(ConnectionStatus.Connecting);
                         handleConnect();
@@ -216,7 +208,7 @@ export const Proctor = () => {
                         margin: '12.5px',
                     }}
                 >
-                    <PhotoCamera fontSize="inherit" />
+                    <PhotoCamera fontSize='inherit' />
                 </IconButton>
             );
             break;
@@ -224,9 +216,9 @@ export const Proctor = () => {
         case ConnectionStatus.Connected:
             controlIcon = (
                 <IconButton
-                    aria-label="disconnect"
-                    size="small"
-                    color="error"
+                    aria-label='disconnect'
+                    size='small'
+                    color='error'
                     onClick={() => {
                         setConnectionStatus(ConnectionStatus.Idle);
                         setToken('');
@@ -237,7 +229,7 @@ export const Proctor = () => {
                         margin: '12.5px',
                     }}
                 >
-                    <CallEnd fontSize="inherit" />
+                    <CallEnd fontSize='inherit' />
                 </IconButton>
             );
             break;
@@ -245,13 +237,13 @@ export const Proctor = () => {
         default:
             controlIcon = (
                 <IconButton
-                    size="small"
+                    size='small'
                     sx={{
                         border: '2px solid',
                         margin: '12.5px',
                     }}
                 >
-                    <Loop fontSize="inherit" />
+                    <Loop fontSize='inherit' />
                 </IconButton>
             );
     }
@@ -262,27 +254,23 @@ export const Proctor = () => {
                 marginTop: '100px',
             }}
         >
-            <Box m="auto">
-                <Typography variant="h4">Proctor Room</Typography>
-                <FormControl
-                    size="small"
-                    required
-                    sx={{ m: 1, minWidth: 120, color: '#fff' }}
-                >
-                    <InputLabel id="select-room">Room</InputLabel>
+            <Box m='auto'>
+                <Typography variant='h4'>Proctor Room</Typography>
+                <FormControl size='small' required sx={{ m: 1, minWidth: 120, color: '#fff' }}>
+                    <InputLabel id='select-room'>Room</InputLabel>
                     <Select
-                        labelId="select-room"
-                        id="select-room"
+                        labelId='select-room'
+                        id='select-room'
                         value={roomNo}
-                        label="Room"
+                        label='Room'
                         onChange={(e) => setRoomNo(e.target.value)}
                     >
-                        <MenuItem value="">
+                        <MenuItem value=''>
                             <em>None</em>
                         </MenuItem>
-                        <MenuItem value="1">One</MenuItem>
-                        <MenuItem value="2">Two</MenuItem>
-                        <MenuItem value="3">Three</MenuItem>
+                        <MenuItem value='1'>One</MenuItem>
+                        <MenuItem value='2'>Two</MenuItem>
+                        <MenuItem value='3'>Three</MenuItem>
                     </Select>
                 </FormControl>
                 {controlIcon}
@@ -291,21 +279,18 @@ export const Proctor = () => {
             <Box>
                 {token && (
                     <LiveKitRoom
-                        url={urls.webRtc}
+                        url={config.webRtcUrl}
                         token={token}
                         stageRenderer={({ roomState }: StageProps) => (
                             <CustomStageView
                                 roomState={roomState}
                                 disconnect={
-                                    token !== '' &&
-                                    connectionStatus === ConnectionStatus.Idle
+                                    token !== '' && connectionStatus === ConnectionStatus.Idle
                                 }
                                 setToken={setToken}
                             />
                         )}
-                        onConnected={() =>
-                            setConnectionStatus(ConnectionStatus.Connected)
-                        }
+                        onConnected={() => setConnectionStatus(ConnectionStatus.Connected)}
                     />
                 )}
             </Box>
