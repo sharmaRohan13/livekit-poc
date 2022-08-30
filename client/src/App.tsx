@@ -141,10 +141,9 @@ const RouteContainer = () => {
 };
 
 const App = () => {
-    console.log(process.env.PUBLIC_URL);
     return (
         <div className='main'>
-            <Router>
+            <Router basename='/livekit'>
                 <Navbar />
                 <RouteContainer />
             </Router>
