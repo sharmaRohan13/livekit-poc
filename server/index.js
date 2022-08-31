@@ -64,7 +64,7 @@ const createAccessToken = (name, room, isProc) => {
   return accessToken.toJwt();
 };
 
-app.post('/proctor/register', (req, res) => {
+app.post('/livekit/proctor/register', (req, res) => {
   try {
     const { name, room } = req.body;
     const token = createAccessToken(name, room, true);
@@ -76,7 +76,7 @@ app.post('/proctor/register', (req, res) => {
   }
 });
 
-app.post('/participant/register', (req, res) => {
+app.post('/livekit/participant/register', (req, res) => {
   try {
     const { name, room } = req.body;
     const token = createAccessToken(name, room, false);
@@ -88,7 +88,7 @@ app.post('/participant/register', (req, res) => {
   }
 });
 
-app.post('/e2e_test/register', (req, res) => {
+app.post('/livekit/e2e_test/register', (req, res) => {
   try {
     const { name } = req.body;
     const tokenProducer = createAccessToken(`${name}-producer`, name, false);
@@ -104,7 +104,7 @@ app.post('/e2e_test/register', (req, res) => {
   }
 });
 
-app.post('/e2e_test/results', async (req, res) => {
+app.post('/livekit/e2e_test/results', async (req, res) => {
   try {
     const stats = req.body;
     const datum = await livekit.insertOne(stats);
@@ -115,7 +115,7 @@ app.post('/e2e_test/results', async (req, res) => {
   }
 });
 
-app.get('/rooms', async (req, res) => {
+app.get('/livekit/rooms', async (req, res) => {
   try {
     const rooms = await svc.listRooms();
 
@@ -126,7 +126,7 @@ app.get('/rooms', async (req, res) => {
   }
 });
 
-app.post('/rooms/create', async (req, res) => {
+app.post('/livekit/rooms/create', async (req, res) => {
   try {
     const options = req.body;
     const room = await svc.createRoom(options);
@@ -138,6 +138,6 @@ app.post('/rooms/create', async (req, res) => {
   }
 });
 
-app.get('/*', function (req, res) {
+app.get('/livekit*', function (req, res) {
   res.render('index.html', { WEBRTC_HOST });
 });
