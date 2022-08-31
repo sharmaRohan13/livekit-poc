@@ -12,7 +12,7 @@ const config = {
     webRtcUrl: process.env.NODE_ENV === 'development' ? 'ws://localhost:7880' : window.WEBRTC_HOST,
     ssoUrl: 'https://uat-sso.isha.in',
     ssoCallBackUrl: 'https://ieco-api.isha.dev',
-    formHash: '212c0c179cee895f7cfb9ccbbf136c365f8fae0fe2847fee8d52ea11548d5860',
+    formHash: '4d6c528c83f14ffaa3a4f36d9f0f9fda2a1507efce7f3e643e2593601956800d',
     apiKey: '31d9c883155816d15f6f3a74dd79961b0577670ac',
 };
 
