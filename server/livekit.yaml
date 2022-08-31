@@ -2,6 +2,9 @@ port: 7880
 
 redis:
     address: 127.0.0.1:6379
+    use_tls: 0
+    username: default
+    password: ieco
 
 rtc:
     udp_port: 7882
