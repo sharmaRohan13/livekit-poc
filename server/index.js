@@ -11,7 +11,7 @@ const app = express();
 app.set('views', path.join(__dirname, buildFolder));
 app.engine('html', require('ejs').renderFile);
 app.use(
-  '/static',
+  '/livekit/static',
   express.static(path.join(__dirname, `${buildFolder}/static`))
 );
 
