@@ -143,6 +143,8 @@ app.post('/livekit/sso/callback', async (req, res) => {
     const api_key = '31d9c883155816d15f6f3a74dd79961b0577670ac';
     const { session_id, request_url } = req.body;
 
+    console.log('Receive Request from SSO', JSON.stringify(req.body));
+
     const hmac = require('crypto').createHmac('sha256', process.env.SSO_SECRET);
     const hash = hmac
       .update(Buffer.from(JSON.stringify(session_id), 'utf-8'))
@@ -166,11 +168,15 @@ app.post('/livekit/sso/callback', async (req, res) => {
       }
     );
 
+    console.log('SSO Response', JSON.stringify(resp.data));
+
     const final_redirect_url = `${extractBaseUrl(
       request_url
     )}/livekit/login?uid=${resp.data.autologin_profile_id}&token=${
       resp.data.id_token
     }`;
+
+    console.log('Redirect URL', final_redirect_url);
 
     if (resp.data.unauth !== 1) {
       if (req.body.consent_grant_status === '0') {
