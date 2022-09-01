@@ -159,7 +159,7 @@ app.post('/livekit/sso/callback', async (req, res) => {
     );
 
     const resp = await axios.post(
-      'https://uat-sso.isha.in/getlogininfo',
+      'https://ishalogin.sadhguru.org/getlogininfo',
       `data= ${encodedData}`,
       {
         headers: {
