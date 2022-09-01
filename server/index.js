@@ -15,6 +15,7 @@ app.use(
   express.static(path.join(__dirname, `${buildFolder}/static`))
 );
 
+app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
 app.use(cors());
 
