@@ -3,6 +3,7 @@ const { RoomServiceClient, AccessToken } = require('livekit-server-sdk');
 const path = require('path');
 const express = require('express');
 const cors = require('cors');
+const axios = require('axios');
 require('dotenv').config();
 
 const buildFolder = '../client/build';
