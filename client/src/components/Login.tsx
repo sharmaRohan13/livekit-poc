@@ -19,7 +19,7 @@ const handleSSOLogin = ({ ssoUrl, ssoCbUrl, apiKey, formHash }: { [key: string]:
     hiddenForm.appendChild(
         buildHiddenInput('request_url', `${window.location.origin}/livekit/login`)
     );
-    hiddenForm.appendChild(buildHiddenInput('callback_url', `${ssoCbUrl}/sso/callback`));
+    hiddenForm.appendChild(buildHiddenInput('callback_url', `${ssoCbUrl}/livekit/sso/callback`));
     hiddenForm.appendChild(buildHiddenInput('api_key', apiKey));
     hiddenForm.appendChild(buildHiddenInput('hash_value', formHash));
     hiddenForm.appendChild(buildHiddenInput('legal_entity', 'IFINC'));
