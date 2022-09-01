@@ -20,6 +20,18 @@ app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
 app.use(cors());
 
+const extractBaseUrl = (url) => {
+  try {
+    const pathArray = url.split('/');
+    const protocol = pathArray[0];
+    const host = pathArray[2];
+    const baseUrl = protocol + '//' + host;
+    return baseUrl;
+  } catch (error) {
+    log.error('error in extractBaseUrl-->', error);
+  }
+};
+
 const { API_KEY, API_SECRET, NODE_ENV, WEBRTC_HOST_URL, MONGODB_CONN_STR } =
   process.env;
 const WEBRTC_HOST =
