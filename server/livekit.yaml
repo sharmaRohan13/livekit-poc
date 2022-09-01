@@ -18,3 +18,10 @@ keys:
 logging:
   json: false
   level: info
+
+turn:
+  enabled: true
+  tls_port: 5349
+  domain: turn.isha.dev
+  cert_file: /etc/letsencrypt/live/turn.isha.dev/fullchain.pem
+  key_file: /etc/letsencrypt/live/turn.isha.dev/privkey.pem
