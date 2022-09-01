@@ -9,6 +9,7 @@ import {
     RoomOptions,
     LocalTrack,
     RemoteTrack,
+    Track,
     createLocalVideoTrack,
     LocalVideoTrack,
     VideoPresets43,
@@ -77,36 +78,45 @@ interface ParticipantTileProps {
 const ParticipantTile = (props: ParticipantTileProps): React.ReactElement | null => {
     const [currentBitrate, setCurrentBitrate] = useState<number>(0);
     const { participant, roomDisconnect, dataAnalytics, setDataAnalytics } = props;
+    const [track, setTrack] = useState<Track>();
+
     const { cameraPublication, isLocal } = useParticipant(participant);
 
     useEffect(() => {
-        const interval = setInterval(() => {
-            let total = 0;
-            participant.tracks.forEach((pub) => {
-                if (pub.track instanceof LocalTrack || pub.track instanceof RemoteTrack) {
-                    total += pub.track.currentBitrate;
-                }
-            });
-            setCurrentBitrate(total);
-            setDataAnalytics(({ dataConsumed, timeElapsed }: DataAnalytics) => ({
-                dataConsumed: dataConsumed + total,
-                timeElapsed: timeElapsed + 1,
-            }));
-        }, 1000);
+        if (track && !isLocal) {
+            const interval = setInterval(() => {
+                let total = 0;
+                participant.tracks.forEach((pub) => {
+                    if (pub.track instanceof LocalTrack || pub.track instanceof RemoteTrack) {
+                        total += pub.track.currentBitrate;
+                    }
+                });
+                setCurrentBitrate(total);
+                setDataAnalytics(({ dataConsumed, timeElapsed }: DataAnalytics) => ({
+                    dataConsumed: dataConsumed + total,
+                    timeElapsed: timeElapsed + 1,
+                }));
+            }, 1000);
 
-        setTimeout(() => {
-            roomDisconnect();
-            clearInterval(interval);
-        }, 20_000);
-    }, []);
+            setTimeout(() => {
+                roomDisconnect();
+                clearInterval(interval);
+            }, 20_000);
+        }
+    }, [track]);
 
-    const notReady =
+    if (
         !cameraPublication ||
         !cameraPublication.isSubscribed ||
         !cameraPublication.track ||
-        cameraPublication.isMuted;
-
-    if (notReady || isLocal) return <></>;
+        cameraPublication.isMuted
+    )
+        return null;
+    else {
+        if (!track) {
+            setTrack(cameraPublication.track);
+        }
+    }
 
     const color = (Math.round(currentBitrate / 1024) / 300) * 255;
 

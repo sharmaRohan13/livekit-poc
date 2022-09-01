@@ -3,6 +3,7 @@ import SendIcon from '@mui/icons-material/Send';
 import { grey } from '@mui/material/colors';
 
 import { useLogout } from './Login';
+import sadhguruImg from '../assets/sadhguru.jpeg';
 
 export const Thanks = () => {
     const logout = useLogout();
@@ -31,11 +32,7 @@ export const Thanks = () => {
                         textAlign: 'center',
                     }}
                 >
-                    <img
-                        style={{ maxWidth: '300px' }}
-                        alt='sadhguru'
-                        src={process.env.PUBLIC_URL + '/sadhguru.jpeg'}
-                    />
+                    <img style={{ maxWidth: '300px' }} alt='sadhguru' src={sadhguruImg} />
                 </Box>
                 <Box
                     sx={{

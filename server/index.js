@@ -138,6 +138,50 @@ app.post('/livekit/rooms/create', async (req, res) => {
   }
 });
 
+app.post('/livekit/sso/callback', async (req, res) => {
+  try {
+    const api_key = '31d9c883155816d15f6f3a74dd79961b0577670ac';
+    const { session_id, request_url } = req.body;
+
+    const hmac = require('crypto').createHmac('sha256', process.env.SSO_SECRET);
+    const hash = hmac
+      .update(Buffer.from(JSON.stringify(session_id), 'utf-8'))
+      .digest('hex');
+
+    const encodedData = encodeURIComponent(
+      JSON.stringify({
+        api_key,
+        session_id,
+        hash_value: hash,
+      })
+    );
+
+    const resp = await axios.post(
+      'https://uat-sso.isha.in/getlogininfo',
+      `data= ${encodedData}`,
+      {
+        headers: {
+          'Content-Type': 'application/x-www-form-urlencoded',
+        },
+      }
+    );
+
+    const final_redirect_url = `${extractBaseUrl(
+      request_url
+    )}/livekit/login?uid=${resp.data.autologin_profile_id}&token=${
+      resp.data.id_token
+    }`;
+
+    if (resp.data.unauth !== 1) {
+      if (req.body.consent_grant_status === '0') {
+        res.redirect(301, request_url);
+      } else {
+        res.redirect(301, final_redirect_url);
+      }
+    }
+  } catch (err) {}
+});
+
 app.get('/livekit*', function (req, res) {
   res.render('index.html', { WEBRTC_HOST });
 });
