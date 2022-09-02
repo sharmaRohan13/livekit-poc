@@ -27,7 +27,7 @@
         "build": "react-scripts build",
         "test": "react-scripts test",
         "eject": "react-scripts eject",
-        "lint": "eslint '**/*.{ts,tsx}'",
+        "lint": "eslint '**/*.{ts,tsx}' --fix",
         "format": "prettier --ignore-path .gitignore --write \"**/*.+(js|ts|jsx|tsx|json)\""
     },
     "eslintConfig": {
@@ -53,8 +53,6 @@
         "@typescript-eslint/parser": ">=5.31.0",
         "eslint": ">=8.0.0",
         "eslint-config-prettier": "^8.5.0",
-        "eslint-config-xo": "^0.42.0",
-        "eslint-config-xo-typescript": "^0.53.0",
         "eslint-plugin-import": "^2.26.0",
         "eslint-plugin-prettier": "^4.2.1",
         "eslint-plugin-react": "^7.31.1",

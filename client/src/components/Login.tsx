@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import React, { useEffect } from 'react';
 import { Outlet, Navigate, useNavigate, useSearchParams } from 'react-router-dom';
 
 const handleSSOLogin = ({ ssoUrl, ssoCbUrl, apiKey, formHash }: { [key: string]: string }) => {

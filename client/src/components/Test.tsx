@@ -18,7 +18,7 @@ import {
 
 import CircularProgress, { CircularProgressProps } from '@mui/material/CircularProgress';
 import { Box, Button, IconButton, Typography } from '@mui/material';
-import { Check, Circle, Close, Loop, CheckCircle } from '@mui/icons-material';
+import { Check, Close, Error, Loop, CheckCircle } from '@mui/icons-material';
 
 import { getUid } from './Login';
 import config from '../config';
@@ -46,7 +46,7 @@ const CircularProgressWithLabel = (props: CircularProgressProps & { value: numbe
     const color = props.value === 100 ? 'success' : 'primary';
 
     return (
-        <Box sx={{ position: 'absolute', display: 'flex' }}>
+        <>
             <CircularProgress color={color} variant='determinate' size={56} {...props} />
             <Box
                 sx={{
@@ -64,44 +64,56 @@ const CircularProgressWithLabel = (props: CircularProgressProps & { value: numbe
                     props.value
                 )}%`}</Typography>
             </Box>
-        </Box>
+        </>
     );
 };
 
 interface ParticipantTileProps {
     participant: Participant;
     roomDisconnect: () => void;
+    testState: TestState;
+    setTestState: React.Dispatch<React.SetStateAction<TestState>>;
     dataAnalytics: DataAnalytics;
     setDataAnalytics: React.Dispatch<React.SetStateAction<DataAnalytics>>;
 }
 
 const ParticipantTile = (props: ParticipantTileProps): React.ReactElement | null => {
-    const [currentBitrate, setCurrentBitrate] = useState<number>(0);
-    const { participant, roomDisconnect, dataAnalytics, setDataAnalytics } = props;
+    const {
+        participant,
+        roomDisconnect,
+        testState,
+        setTestState,
+        dataAnalytics,
+        setDataAnalytics,
+    } = props;
     const [track, setTrack] = useState<Track>();
 
     const { cameraPublication, isLocal } = useParticipant(participant);
 
     useEffect(() => {
         if (track && !isLocal) {
-            const interval = setInterval(() => {
-                let total = 0;
-                participant.tracks.forEach((pub) => {
-                    if (pub.track instanceof LocalTrack || pub.track instanceof RemoteTrack) {
-                        total += pub.track.currentBitrate;
-                    }
-                });
-                setCurrentBitrate(total);
-                setDataAnalytics(({ dataConsumed, timeElapsed }: DataAnalytics) => ({
-                    dataConsumed: dataConsumed + total,
-                    timeElapsed: timeElapsed + 1,
-                }));
-            }, 1000);
+            let interval: NodeJS.Timer;
+            setTimeout(() => {
+                interval = setInterval(() => {
+                    let total = 0;
+                    participant.tracks.forEach((pub) => {
+                        if (pub.track instanceof LocalTrack || pub.track instanceof RemoteTrack) {
+                            total += pub.track.currentBitrate;
+                        }
+                    });
+                    setDataAnalytics(({ dataConsumed, timeElapsed }: DataAnalytics) => ({
+                        dataConsumed: dataConsumed + total,
+                        timeElapsed: timeElapsed + 1,
+                    }));
+                }, 1000);
+                setTestState(TestState.Ongoing);
+            }, 3000);
 
             setTimeout(() => {
+                setTestState(TestState.Completed);
                 roomDisconnect();
                 clearInterval(interval);
-            }, 20_000);
+            }, 14_000);
         }
     }, [track]);
 
@@ -118,8 +130,6 @@ const ParticipantTile = (props: ParticipantTileProps): React.ReactElement | null
         }
     }
 
-    const color = (Math.round(currentBitrate / 1024) / 300) * 255;
-
     return (
         <Box
             sx={{
@@ -132,53 +142,25 @@ const ParticipantTile = (props: ParticipantTileProps): React.ReactElement | null
             <VideoRenderer
                 track={cameraPublication.track!}
                 isLocal={false}
-                width='100%'
-                height='100%'
+                width='400px'
+                height='300px'
             />
-            <Box
-                sx={{
-                    display: 'flex',
-                    position: 'absolute',
-                    width: '100%',
-                    backgroundColor: 'rgba(0,0,0,0.5)',
-                    bottom: '0',
-                }}
-            >
-                <Box
-                    component='span'
-                    sx={{
-                        color: 'white',
-                    }}
-                >
-                    <Typography variant='body2'>
-                        &nbsp;
-                        {Math.round(currentBitrate / 1024)} kbps
-                    </Typography>
-                </Box>
-                <Box
-                    component='span'
-                    sx={{
-                        position: 'absolute',
-                        color: 'white',
-                        right: '5px',
-                    }}
-                >
-                    <Typography variant='body2'>{participant.metadata}</Typography>
-                </Box>
+            <Box sx={{ position: 'absolute', display: 'flex' }}>
+                {testState === TestState.Ongoing && (
+                    <CircularProgressWithLabel value={dataAnalytics.timeElapsed * 10} />
+                )}
+                {testState === TestState.Starting && <Loop fontSize='large' color='primary' />}
             </Box>
-            <Circle
-                sx={{
-                    color: `rgb(${255 - color}, ${color}, 0)`,
-                    position: 'absolute',
-                    top: ' 5px',
-                    right: '5px',
-                }}
-                fontSize='small'
-            />
-            <CircularProgressWithLabel value={dataAnalytics.timeElapsed * 5} />
         </Box>
     );
 };
+
+enum TestState {
+    Starting,
+    Ongoing,
+    Completed,
+    Error,
+}
 
 interface Props {
     token: {
@@ -194,7 +176,7 @@ export const Test: React.FC<Props> = ({ token }) => {
         dataConsumed: 0,
         timeElapsed: 0,
     });
-    const [testComplete, setTestComplete] = useState(false);
+    const [testState, setTestState] = useState<TestState>(TestState.Starting);
 
     const roomOptions: RoomOptions = {
         adaptiveStream: false,
@@ -209,7 +191,7 @@ export const Test: React.FC<Props> = ({ token }) => {
     const roomStateProducer = useRoom(roomOptions);
     const roomStateConsumer = useRoom(roomOptions);
 
-    const handleRoomConnected = async (room: Room) => {
+    const handleProdRoomConnected = async (room: Room) => {
         const track: LocalVideoTrack = await createLocalVideoTrack({
             resolution: VideoPresets43.h480.resolution,
         });
@@ -223,7 +205,6 @@ export const Test: React.FC<Props> = ({ token }) => {
         if (roomStateProducer.room && roomStateConsumer.room) {
             roomStateProducer.room.disconnect();
             roomStateConsumer.room.disconnect();
-            setTestComplete(true);
         }
     };
 
@@ -232,18 +213,41 @@ export const Test: React.FC<Props> = ({ token }) => {
         submitResults(success, testAnalytics);
     };
 
-    const icon = testComplete ? <CheckCircle fontSize='large' /> : <Loop fontSize='large' />;
+    const icon =
+        testState === TestState.Starting ? (
+            <Loop fontSize='large' />
+        ) : testState === TestState.Completed ? (
+            <CheckCircle fontSize='large' />
+        ) : (
+            <Error fontSize='large' />
+        );
+
+    const color =
+        testState === TestState.Starting
+            ? 'primary'
+            : testState === TestState.Completed
+            ? 'success'
+            : 'error';
 
     const connectProducerAndConsumer = async () => {
         try {
-            const room = await roomStateProducer.connect(config.webRtcUrl, producer);
-            if (room) {
-                await handleRoomConnected(room);
-                roomStateConsumer.connect(config.webRtcUrl, consumer);
+            const roomProd = await roomStateProducer.connect(config.webRtcUrl, producer);
+            if (roomProd) {
+                console.log('Producer Room Connected');
+                await handleProdRoomConnected(roomProd);
+
+                const roomCons = await roomStateConsumer.connect(config.webRtcUrl, consumer);
+                if (roomCons) {
+                    console.log('Consumer Room Connected');
+                } else {
+                    throw 'Error: Consumer Room -> Not available';
+                }
+            } else {
+                throw 'Error: Producer Room -> Not available';
             }
         } catch (err) {
-            console.log(err);
-            setTestComplete(true);
+            setTestState(TestState.Error);
+            console.error(err);
         }
     };
 
@@ -279,7 +283,7 @@ export const Test: React.FC<Props> = ({ token }) => {
                 {roomStateConsumer.connectionState !== ConnectionState.Connected ? (
                     <IconButton
                         size='small'
-                        color={testComplete ? 'success' : 'primary'}
+                        color={color}
                         sx={{
                             marginBottom: '10px',
                         }}
@@ -293,6 +297,8 @@ export const Test: React.FC<Props> = ({ token }) => {
                                 key={ppt.sid}
                                 participant={ppt}
                                 roomDisconnect={roomDisconnect}
+                                testState={testState}
+                                setTestState={setTestState}
                                 dataAnalytics={testAnalytics}
                                 setDataAnalytics={setTestAnalytics}
                             />
@@ -300,7 +306,7 @@ export const Test: React.FC<Props> = ({ token }) => {
                     </>
                 )}
             </Box>
-            {testComplete && (
+            {(testState === TestState.Completed || testState === TestState.Error) && (
                 <Box
                     sx={{
                         textAlign: 'center',

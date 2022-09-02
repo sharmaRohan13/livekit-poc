@@ -51,10 +51,13 @@ const mongoMain = async () => {
 
   try {
     await client.connect();
+    console.log('MongoDB Connection Established');
 
     const db = client.db('livekit');
     livekit = db.collection('livekit');
-  } catch (err) {}
+  } catch (err) {
+    console.error('MongoDB Connection Error', err);
+  }
 };
 
 mongoMain().catch(console.error);
